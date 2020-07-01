@@ -24,8 +24,19 @@ public class SwapiController {
     @GetMapping("/planet")
     public String planet(Model model, @RequestParam Long id) {
 
+        WebClient webClient = WebClient.create(SWAPI_URL);
+        Mono<String> call = webClient.get().uri(uriBuilder -> uriBuilder.path("/planets/{id}/").build(id)).retrieve()
+                .bodyToMono(String.class);
+
+        String response = call.block();
+
+        ObjectMapper objectMapper = new ObjectMapper();
         Planet planetObject = null;
-        // TODO : call the API and retrieve the planet
+        try {
+            planetObject = objectMapper.readValue(response, Planet.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
 
         model.addAttribute("planetInfos", planetObject);
 
@@ -36,11 +47,7 @@ public class SwapiController {
     public String people(Model model, @RequestParam Long id) {
 
         WebClient webClient = WebClient.create(SWAPI_URL);
-        Mono<String> call = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/people/{id}/")
-                        .build(id))
-                .retrieve()
+        Mono<String> call = webClient.get().uri(uriBuilder -> uriBuilder.path("/people/{id}/").build(id)).retrieve()
                 .bodyToMono(String.class);
 
         String response = call.block();
